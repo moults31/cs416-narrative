@@ -78,42 +78,59 @@ async function barChart() {
   const data = await d3.csv(
     "https://flunky.github.io/cars2017.csv");
 
-  height = 50
-  width = 200
+    var margin = {top: 20, right: 20, bottom: 70, left: 40},
+    width = 600 - margin.left - margin.right,
+    height = 300 - margin.top - margin.bottom;
 
-  var xScale = d3.scaleBand().range([0, width]).padding(0.4),
-    yScale = d3.scaleLinear().range([height, 0]);
-  xScale.domain([10,150]);
-  yScale.domain([150,10]);
+  var x = d3.scaleBand().rangeRound([0, width]).paddingInner(0.05);
 
-  d3.select('svg')
-    .append('g')
-        .attr("transform", "translate(50, 50)")
-        .call(d3.axisBottom(xScale));
+  var y = d3.scaleLinear().range([height, 0]);
 
-  d3.select('svg')
-    .append('g')
-        .call(d3.axisLeft(yScale).tickFormat(function(d){
-            return "$" + d;
-        }).ticks(10))
-        .append("text")
-        .attr("y", 6)
-        .attr("dy", "0.71em")
-        .attr("text-anchor", "end")
-        .text("value");
+  var xAxis = d3.axisBottom(x)
+      .tickValues(data.Make);
 
-  d3.select('svg')
-    .append('g')
-    .attr("transform", "translate(50, 50)")
-    .selectAll('p')
-    .data(data)
-    .enter()
-    .append('rect')
-      .attr('x', function(d,i) {return i * 10;})
-      .attr('y', function(d) { return yScale(d.AverageHighwayMPG); })
-      .attr("width", xScale.bandwidth())
-      .attr("height", function(d) { return height - yScale(d.AverageHighwayMPG); })
-      .style('fill', 'lightblue');
+
+  var yAxis = d3.axisLeft(y)
+      .ticks(10);
+
+  var svg = d3.select("body").append("svg")
+      .attr("width", width + margin.left + margin.right)
+      .attr("height", height + margin.top + margin.bottom)
+    .append("g")
+      .attr("transform",
+            "translate(" + margin.left + "," + margin.top + ")");
+
+  x.domain(data.map(function(d) { return d.Make; }));
+  y.domain([0, d3.max(data, function(d) { return d.AverageHighwayMPG; })]);
+
+  svg.append("g")
+      .attr("class", "x axis")
+      .attr("transform", "translate(0," + height + ")")
+      .call(xAxis)
+    .selectAll("text")
+      .style("text-anchor", "end")
+      .attr("dx", "-.8em")
+      .attr("dy", "-.55em")
+      .attr("transform", "rotate(-90)" );
+
+  svg.append("g")
+      .attr("class", "y axis")
+      .call(yAxis)
+    .append("text")
+      .attr("transform", "rotate(-90)")
+      .attr("y", 6)
+      .attr("dy", ".71em")
+      .style("text-anchor", "end")
+      .text("Value ($)");
+
+  svg.selectAll("bar")
+      .data(data)
+    .enter().append("rect")
+      .style("fill", "steelblue")
+      .attr("x", function(d) { return x(d.Make); })
+      .attr("width", x.bandwidth())
+      .attr("y", function(d) { return y(d.AverageHighwayMPG); })
+      .attr("height", function(d) { return height - y(d.AverageHighwayMPG); });
 }
 
 // Adapted from https://www.javatpoint.com/how-to-create-dropdown-list-using-javascript
