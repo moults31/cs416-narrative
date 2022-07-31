@@ -35,9 +35,9 @@ function switchScene(value) {
   if(currentScene == 0){
       scatterPlot();
   } else if(currentScene == 1){
-      barChart();
+      barChart("highway");
   } else {
-      ;
+      barChart("city");
   }
 }
 
@@ -106,12 +106,26 @@ async function scatterPlot() {
 }
 
 // Bar chart adapted from https://www.tutorialsteacher.com/d3js/create-bar-chart-using-d3js
-async function barChart() {
+async function barChart(valueType) {
   const data_raw = await d3.csv(
     "https://flunky.github.io/cars2017.csv");
 
-  data_tmp = filterDataFuel(data_raw, filterModeFuel);
-  data = filterDataCyl(data_tmp, filterModeCyl);
+  data_filt1 = filterDataFuel(data_raw, filterModeFuel);
+  data_filt2 = filterDataCyl(data_filt1, filterModeCyl);
+
+  if(valueType === "city"){
+    var data_agg = d3.nest()
+      .key(function(d) { return d.Make; })
+      .rollup(function(v) { return d3.mean(v, function(d) { return d.AverageCityMPG; }); })
+      .entries(data_filt2);
+  } else {
+    var data_agg = d3.nest()
+      .key(function(d) { return d.Make; })
+      .rollup(function(v) { return d3.mean(v, function(d) { return d.AverageHighwayMPG; }); })
+      .entries(data_filt2);
+  }
+
+  data = data_agg.sort(function (a,b) {return d3.descending(a.value, b.value); });
 
   var margin = {top: 20, right: 20, bottom: 70, left: 80},
   width = 600 - margin.left - margin.right,
@@ -128,9 +142,8 @@ async function barChart() {
   var yAxis = d3.axisLeft(y)
       .ticks(10);
 
-  x.domain(data.map(function(d) { return d.Make; }));
-  y.domain([0, d3.max(data, function(d) { return d.AverageHighwayMPG; })]);
-
+  x.domain(data.map(function(d) { return d.key; }));
+  y.domain([0, 150]);
   d3.select("svg").append("g")
     .attr("transform",
       "translate(" + margin.left + "," + xAxis_y + ")")
@@ -155,17 +168,18 @@ async function barChart() {
   .text("Value ($)");
 
   d3.select("svg")
-  .append("g")
-  .attr("transform",
-        "translate(" + margin.left + "," + margin.top + ")")
-  .selectAll("bar")
-  .data(data)
-.enter().append("rect")
-  .style("fill", "steelblue")
-  .attr("x", function(d) { return x(d.Make); })
-  .attr("width", x.bandwidth())
-  .attr("y", function(d) { return y(d.AverageHighwayMPG); })
-  .attr("height", function(d) { return height - y(d.AverageHighwayMPG); });
+    .append("g")
+    .attr("transform",
+          "translate(" + margin.left + "," + margin.top + ")")
+    .selectAll("bar")
+    .data(data)
+  .enter().append("rect")
+    .style("fill", "steelblue")
+    .attr("x", function(d) { return x(d.key); })
+    .attr("width", x.bandwidth())
+    .attr("y", function(d) { return y(d.value); })
+    .attr("height", function(d) { return height - y(d.value); });
+
 }
 
 function processDropDownFuel() {  
