@@ -2,11 +2,13 @@
 <script src='https://d3js.org/d3.v5.min.js'></script>
 <style> circle {fill: lightblue; stroke: black;} </style>
 <body onload='init()'>
-<svg width=300 height=300>
+<svg width=600 height=400>
 </svg>
 <script>
 
 var currentScene = 0;
+var filterModeFuel = "Any";
+var filterModeCyl = "Any";
 async function init() {
 
   scatterPlot();
@@ -39,9 +41,39 @@ function switchScene(value) {
   }
 }
 
+function filterDataFuel(data_raw, mode) {
+  if(mode === "Any"){
+    return data_raw;
+  }
+
+  return data_raw.filter(function(d) { 
+      if( d["Fuel"] === mode)
+      { 
+          return d;
+      } 
+  });
+}
+
+function filterDataCyl(data_raw, n) {
+  if(n === "Any"){
+    return data_raw;
+  }
+
+  // Select only entries where EngineCylinders == n
+  return data_raw.filter(function(d) { 
+      if( d["EngineCylinders"] === n)
+      { 
+          return d;
+      } 
+  });
+}
+
 async function scatterPlot() {
-  const data = await d3.csv(
+  const data_raw = await d3.csv(
     "https://flunky.github.io/cars2017.csv");
+
+  data_tmp = filterDataFuel(data_raw, filterModeFuel);
+  data = filterDataCyl(data_tmp, filterModeCyl);
 
   ys = d3.scaleLog().domain([150,10]).range([0,200]);
   xs = d3.scaleLog().domain([10,150]).range([0,200]);
@@ -75,12 +107,16 @@ async function scatterPlot() {
 
 // Bar chart adapted from https://www.tutorialsteacher.com/d3js/create-bar-chart-using-d3js
 async function barChart() {
-  const data = await d3.csv(
+  const data_raw = await d3.csv(
     "https://flunky.github.io/cars2017.csv");
 
-    var margin = {top: 20, right: 20, bottom: 70, left: 40},
-    width = 600 - margin.left - margin.right,
-    height = 300 - margin.top - margin.bottom;
+  data_tmp = filterDataFuel(data_raw, filterModeFuel);
+  data = filterDataCyl(data_tmp, filterModeCyl);
+
+  var margin = {top: 20, right: 20, bottom: 70, left: 80},
+  width = 600 - margin.left - margin.right,
+  height = 300 - margin.top - margin.bottom;
+  xAxis_y = margin.top + height;
 
   var x = d3.scaleBand().rangeRound([0, width]).paddingInner(0.05);
 
@@ -89,59 +125,64 @@ async function barChart() {
   var xAxis = d3.axisBottom(x)
       .tickValues(data.Make);
 
-
   var yAxis = d3.axisLeft(y)
       .ticks(10);
-
-  var svg = d3.select("body").append("svg")
-      .attr("width", width + margin.left + margin.right)
-      .attr("height", height + margin.top + margin.bottom)
-    .append("g")
-      .attr("transform",
-            "translate(" + margin.left + "," + margin.top + ")");
 
   x.domain(data.map(function(d) { return d.Make; }));
   y.domain([0, d3.max(data, function(d) { return d.AverageHighwayMPG; })]);
 
-  svg.append("g")
-      .attr("class", "x axis")
-      .attr("transform", "translate(0," + height + ")")
-      .call(xAxis)
-    .selectAll("text")
-      .style("text-anchor", "end")
-      .attr("dx", "-.8em")
-      .attr("dy", "-.55em")
-      .attr("transform", "rotate(-90)" );
+  d3.select("svg").append("g")
+    .attr("transform",
+      "translate(" + margin.left + "," + xAxis_y + ")")
+    .attr("class", "x axis")
+    .call(xAxis)
+  .selectAll("text")
+    .style("text-anchor", "end")
+    .attr("dx", "-.8em")
+    .attr("dy", "-.55em")
+    .attr("transform", "rotate(-90)" );
 
-  svg.append("g")
-      .attr("class", "y axis")
-      .call(yAxis)
-    .append("text")
-      .attr("transform", "rotate(-90)")
-      .attr("y", 6)
-      .attr("dy", ".71em")
-      .style("text-anchor", "end")
-      .text("Value ($)");
+  d3.select("svg").append("g")
+  .attr("transform",
+        "translate(" + margin.left + "," + margin.top + ")")
+  .attr("class", "y axis")
+  .call(yAxis)
+.append("text")
+  .attr("transform", "rotate(-90)")
+  .attr("y", 6)
+  .attr("dy", ".71em")
+  .style("text-anchor", "end")
+  .text("Value ($)");
 
-  svg.selectAll("bar")
-      .data(data)
-    .enter().append("rect")
-      .style("fill", "steelblue")
-      .attr("x", function(d) { return x(d.Make); })
-      .attr("width", x.bandwidth())
-      .attr("y", function(d) { return y(d.AverageHighwayMPG); })
-      .attr("height", function(d) { return height - y(d.AverageHighwayMPG); });
+  d3.select("svg")
+  .append("g")
+  .attr("transform",
+        "translate(" + margin.left + "," + margin.top + ")")
+  .selectAll("bar")
+  .data(data)
+.enter().append("rect")
+  .style("fill", "steelblue")
+  .attr("x", function(d) { return x(d.Make); })
+  .attr("width", x.bandwidth())
+  .attr("y", function(d) { return y(d.AverageHighwayMPG); })
+  .attr("height", function(d) { return height - y(d.AverageHighwayMPG); });
 }
 
-// Adapted from https://www.javatpoint.com/how-to-create-dropdown-list-using-javascript
-function processDropDown() {  
-    var mylist = document.getElementById("myList");  
-    document.getElementById("favourite").value = mylist.options[mylist.selectedIndex].text;  
+function processDropDownFuel() {  
+    var fuelList = document.getElementById("fuelList");  
+    filterModeFuel = fuelList.options[fuelList.selectedIndex].text;
+    switchScene(currentScene);
+}
+
+function processDropDownCyl() {  
+    var cylList = document.getElementById("cylList");  
+    filterModeCyl = cylList.options[cylList.selectedIndex].text;
+    switchScene(currentScene);
 }
 
 
 </script>
-<b> Select scene (go in order!) </b>  
+<b> <br> Scene </b>  
 <button data-value="0">0</button>
 <button data-value="1">1</button>
 <button data-value="2">2</button>
@@ -149,17 +190,29 @@ function processDropDown() {
 <output></output>
 
 <form>  
-    <b> Select you favourite tutorial site using dropdown list </b>  
-    <select id = "myList" onchange = "processDropDown()" >  
-    <option> ---Choose tutorial--- </option>  
-    <option> w3schools </option>  
-    <option> Javatpoint </option>  
-    <option> tutorialspoint </option>  
-    <option> geeksforgeeks </option>  
+    <b> Filter by Fuel Type </b>  
+    <select id = "fuelList" onchange = "processDropDownFuel()" >  
+    <option> ----Fuel---- </option>  
+    <option> Any </option>  
+    <option> Gasoline </option>  
+    <option> Diesel </option>  
+    <option> Electricity </option>  
     </select>  
-    <p> Your selected tutorial site is:   
-    <input type = "text" id = "favourite" size = "20" </p>  
-</form>  
+  </form>  
+<form>  
+    <b> Filter by Engine Cylinders </b>  
+    <select id = "cylList" onchange = "processDropDownCyl()" >  
+    <option> ---Cylinders--- </option>  
+    <option> Any </option>  
+    <option> 0 </option>  
+    <option> 3 </option>  
+    <option> 4 </option>  
+    <option> 6 </option>  
+    <option> 8 </option>  
+    <option> 10 </option>  
+    <option> 12 </option>  
+    </select>  
+  </form> 
 </body>
 </html>
 
