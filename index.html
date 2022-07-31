@@ -75,21 +75,21 @@ async function scatterPlot() {
   data_tmp = filterDataFuel(data_raw, filterModeFuel);
   data = filterDataCyl(data_tmp, filterModeCyl);
 
-  ys = d3.scaleLog().domain([150,10]).range([0,200]);
-  xs = d3.scaleLog().domain([10,150]).range([0,200]);
+  ys = d3.scaleLog().domain([300,10]).range([0,300]);
+  xs = d3.scaleLog().domain([10,300]).range([0,300]);
 
   d3.select('svg')
     .append('g')
     .attr("transform", "translate(50, 50)")
     .call(d3.axisLeft(ys)
-            .tickValues([10, 20, 50, 100])
+            .tickValues([10, 20, 50, 100, 150])
             .tickFormat(d3.format("~s")));
 
   d3.select('svg')
     .append('g')
-    .attr("transform", "translate(50, 250)")
+    .attr("transform", "translate(50, 350)")
     .call(d3.axisBottom(xs)
-            .tickValues([10, 20, 50, 100])
+            .tickValues([10, 20, 50, 100, 150])
             .tickFormat(d3.format("~s")));
 
   d3.select('svg')
