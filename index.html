@@ -1,5 +1,6 @@
 <html>
 <script src='https://d3js.org/d3.v5.min.js'></script>
+<script src="https://rawgit.com/susielu/d3-annotation/master/d3-annotation.min.js"></script>
 <style> circle {fill: lightblue; stroke: black;} </style>
 <body onload='init()'>
 <svg width=600 height=400>
@@ -9,6 +10,7 @@
 var currentScene = 0;
 var filterModeFuel = "Any";
 var filterModeCyl = "Any";
+
 async function init() {
 
   scatterPlot();
@@ -103,6 +105,62 @@ async function scatterPlot() {
       .attr('cy', function(d) {return ys(d.AverageHighwayMPG);})
       .attr('r', function(d) {return 2 + parseInt(d.EngineCylinders);})
       .style('fill', 'lightblue');
+
+      if((filterModeFuel === "Electricity") || (filterModeFuel === "Any")){
+        // Features of the annotation
+        const annotations = [
+          {
+            type:d3.annotationCalloutCircle,
+            note: {
+              title: "Electric Cars",
+              label: "High MPG both City and Highway"
+            },
+            x: 270,
+            y: 150,
+            dy: 65,
+            dx: 15,
+            subject: {
+              radius: 40,
+              radiusPadding: 0
+            }
+          }
+        ]
+      
+        // Add annotation to the chart
+        const makeAnnotations = d3.annotation()
+          .annotations(annotations)
+        d3.select("svg")
+          .append("g")
+          .call(makeAnnotations)
+    }
+
+    if((filterModeFuel != "Electricity")){
+        // Features of the annotation
+        const annotations = [
+          {
+            type:d3.annotationCalloutCircle,
+            note: {
+              title: "Internal Combustion Cars",
+              label: "Strong correlation between City and Highway MPG"
+            },
+            x: 105,
+            y: 270,
+            dy: -90,
+            dx: -0,
+            subject: {
+              radius: 80,
+              radiusPadding: 0
+            }
+          }
+        ]
+      
+        // Add annotation to the chart
+        const makeAnnotations = d3.annotation()
+          .annotations(annotations)
+        d3.select("svg")
+          .append("g")
+          .call(makeAnnotations)
+    }
 }
 
 // Bar chart adapted from https://www.tutorialsteacher.com/d3js/create-bar-chart-using-d3js
@@ -196,12 +254,6 @@ function processDropDownCyl() {
 
 
 </script>
-<b> <br> Scene </b>  
-<button data-value="0">0</button>
-<button data-value="1">1</button>
-<button data-value="2">2</button>
-<button data-value="3">Next</button>
-<output></output>
 
 <form>  
     <b> Filter by Fuel Type </b>  
@@ -226,7 +278,13 @@ function processDropDownCyl() {
     <option> 10 </option>  
     <option> 12 </option>  
     </select>  
-  </form> 
+  </form>
+  <b> <br> Scene </b>  
+  <button data-value="0">0</button>
+  <button data-value="1">1</button>
+  <button data-value="2">2</button>
+  <button data-value="3">Next</button>
+  <output></output> 
 </body>
 </html>
 
