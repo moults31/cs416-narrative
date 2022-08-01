@@ -3,7 +3,7 @@
 <script src="https://rawgit.com/susielu/d3-annotation/master/d3-annotation.min.js"></script>
 <style> circle {fill: lightblue; stroke: black;} </style>
 <body onload='init()'>
-<svg width=600 height=400>
+<svg width=600 height=450>
 </svg>
 <script>
 
@@ -81,6 +81,15 @@ async function scatterPlot() {
   xs = d3.scaleLog().domain([10,300]).range([0,300]);
 
   d3.select('svg')
+    .append('g').append("text")
+        .attr("x", 200)             
+        .attr("y", 20)
+        .attr("text-anchor", "middle")  
+        .style("font-size", "16px") 
+        .style("text-decoration", "underline")  
+        .text("Overview: AVG Highway MPG vs AVG City MPG");
+
+  d3.select('svg')
     .append('g')
     .attr("transform", "translate(50, 50)")
     .call(d3.axisLeft(ys)
@@ -140,7 +149,7 @@ async function scatterPlot() {
           {
             type:d3.annotationCalloutCircle,
             note: {
-              title: "Internal Combustion Cars",
+              title: "Non-Electric Cars",
               label: "Strong correlation between City and Highway MPG"
             },
             x: 105,
@@ -185,9 +194,9 @@ async function barChart(valueType) {
 
   data = data_agg.sort(function (a,b) {return d3.descending(a.value, b.value); });
 
-  var margin = {top: 20, right: 20, bottom: 70, left: 80},
+  var margin = {top: 80, right: 20, bottom: 70, left: 80},
   width = 600 - margin.left - margin.right,
-  height = 300 - margin.top - margin.bottom;
+  height = 350 - margin.top - margin.bottom;
   xAxis_y = margin.top + height;
 
   var x = d3.scaleBand().rangeRound([0, width]).paddingInner(0.05);
@@ -202,6 +211,27 @@ async function barChart(valueType) {
 
   x.domain(data.map(function(d) { return d.key; }));
   y.domain([0, 150]);
+
+  if(valueType === "city"){
+    d3.select('svg')
+      .append('g').append("text")
+          .attr("x", 370)             
+          .attr("y", 20)
+          .attr("text-anchor", "middle")  
+          .style("font-size", "16px") 
+          .style("text-decoration", "underline")  
+          .text("Which Makes score best in Aggregate City MPG?");
+  } else{
+    d3.select('svg')
+      .append('g').append("text")
+          .attr("x", 370)             
+          .attr("y", 20)
+          .attr("text-anchor", "middle")  
+          .style("font-size", "16px") 
+          .style("text-decoration", "underline")  
+          .text("Which Makes score best in Aggregate Highway MPG?");
+  }
+
   d3.select("svg").append("g")
     .attr("transform",
       "translate(" + margin.left + "," + xAxis_y + ")")
@@ -238,6 +268,154 @@ async function barChart(valueType) {
     .attr("y", function(d) { return y(d.value); })
     .attr("height", function(d) { return height - y(d.value); });
 
+    if((filterModeFuel == "Any") && filterModeCyl == "Any"){
+        // Features of the annotation
+        const annotations = [
+          {
+            note: {
+              title: "Tesla",
+              label: "Best aggregate performance - fully electric lineup"
+            },
+            x: 90,
+            y: 140,
+            dy: -5,
+            dx: 10,
+          },
+          {
+            note: {
+              title: "Racing Makes",
+              label: "Worst performance - inefficient"
+            },
+            x: 555,
+            y: 250,
+            dy: -5,
+            dx: -10,
+          },
+          {
+            type:d3.annotationCalloutRect,
+            note: {
+              label: "Top 7 consistent, highway vs city"
+            },
+            x: 85,
+            y: 278,
+            dy: 87,
+            dx: 60,
+            subject: {
+              width: 91,
+              height: 70
+            }
+          }
+        ]
+      
+        // Add annotation to the chart
+        const makeAnnotations = d3.annotation()
+          .annotations(annotations)
+        d3.select("svg")
+          .append("g")
+          .call(makeAnnotations)
+    }
+
+    if((filterModeFuel == "Gasoline") && filterModeCyl == "Any"){
+        // Features of the annotation
+        const annotations = [
+          {
+            note: {
+              title: "Smaller cars",
+              label: "Best performance - more efficient"
+            },
+            x: 100,
+            y: 220,
+            dy: -5,
+            dx: 10,
+          },
+          {
+            note: {
+              title: "Racing Makes",
+              label: "Worst performance - inefficient"
+            },
+            x: 555,
+            y: 250,
+            dy: -5,
+            dx: -10,
+          }
+        ]
+      
+        // Add annotation to the chart
+        const makeAnnotations = d3.annotation()
+          .annotations(annotations)
+        d3.select("svg")
+          .append("g")
+          .call(makeAnnotations)
+    }
+
+    if((filterModeFuel == "Electricity") && filterModeCyl == "Any"){
+        // Features of the annotation
+        const annotations = [
+          {
+            note: {
+              title: "Hyundai",
+              label: "Leads when selecting only electric cars"
+            },
+            x: 105,
+            y: 335,
+            dy: 15,
+            dx: 50,
+          },
+        ]
+      
+        // Add annotation to the chart
+        const makeAnnotations = d3.annotation()
+          .annotations(annotations)
+        d3.select("svg")
+          .append("g")
+          .call(makeAnnotations)
+    }
+
+    if((filterModeFuel == "Gasoline") && filterModeCyl == "Any"){
+        // Features of the annotation
+        const annotations = [
+          {
+            note: {
+              title: "smart",
+              label: "Leads when selecting only gasoline cars"
+            },
+            x: 100,
+            y: 320,
+            dy: 45,
+            dx: 20,
+          },
+        ]
+      
+        // Add annotation to the chart
+        const makeAnnotations = d3.annotation()
+          .annotations(annotations)
+        d3.select("svg")
+          .append("g")
+          .call(makeAnnotations)
+    }
+
+    if((filterModeFuel == "Diesel") && filterModeCyl == "Any"){
+        // Features of the annotation
+        const annotations = [
+          {
+            note: {
+              title: "Jaguar",
+              label: "Leads when selecting only diesel cars"
+            },
+            x: 128,
+            y: 328,
+            dy: 15,
+            dx: 20,
+          },
+        ]
+      
+        // Add annotation to the chart
+        const makeAnnotations = d3.annotation()
+          .annotations(annotations)
+        d3.select("svg")
+          .append("g")
+          .call(makeAnnotations)
+    }
 }
 
 function processDropDownFuel() {  
