@@ -81,31 +81,42 @@ async function scatterPlot() {
   xs = d3.scaleLog().domain([10,300]).range([0,300]);
 
   d3.select('svg')
-    .append('g').append("text")
-        .attr("x", 200)             
+    .append('g')
+    .append("text")
+        .attr("x", 230)             
         .attr("y", 20)
         .attr("text-anchor", "middle")  
         .style("font-size", "16px") 
         .style("text-decoration", "underline")  
-        .text("Overview: AVG Highway MPG vs AVG City MPG");
+        .text("Which Makes are the most fuel efficient?")
+  
+  d3.select('svg')
+    .append('g')
+    .append("text")
+      .attr("x", 230)             
+      .attr("y", 42)
+      .attr("text-anchor", "middle")  
+      .style("font-size", "16px") 
+      .style("text-decoration", "underline")  
+      .text("First, Overview: AVG Highway MPG vs AVG City MPG");
 
   d3.select('svg')
     .append('g')
-    .attr("transform", "translate(50, 50)")
+    .attr("transform", "translate(50, 70)")
     .call(d3.axisLeft(ys)
             .tickValues([10, 20, 50, 100, 150])
             .tickFormat(d3.format("~s")));
 
   d3.select('svg')
     .append('g')
-    .attr("transform", "translate(50, 350)")
+    .attr("transform", "translate(50, 370)")
     .call(d3.axisBottom(xs)
             .tickValues([10, 20, 50, 100, 150])
             .tickFormat(d3.format("~s")));
 
   d3.select('svg')
     .append('g')
-    .attr("transform", "translate(50, 50)")
+    .attr("transform", "translate(50, 70)")
     .selectAll('p')
     .data(data)
     .enter()
@@ -125,7 +136,7 @@ async function scatterPlot() {
               label: "High MPG both City and Highway"
             },
             x: 270,
-            y: 150,
+            y: 170,
             dy: 65,
             dx: 15,
             subject: {
@@ -153,7 +164,7 @@ async function scatterPlot() {
               label: "Strong correlation between City and Highway MPG"
             },
             x: 105,
-            y: 270,
+            y: 290,
             dy: -90,
             dx: -0,
             subject: {
