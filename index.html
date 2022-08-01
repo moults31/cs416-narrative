@@ -88,7 +88,7 @@ async function scatterPlot() {
         .attr("text-anchor", "middle")  
         .style("font-size", "16px") 
         .style("text-decoration", "underline")  
-        .text("Which Makes are the most fuel efficient?")
+        .text("Which makes are the most fuel efficient?")
   
   d3.select('svg')
     .append('g')
@@ -231,7 +231,7 @@ async function barChart(valueType) {
           .attr("text-anchor", "middle")  
           .style("font-size", "16px") 
           .style("text-decoration", "underline")  
-          .text("Which Makes score best in Aggregate City MPG?");
+          .text("Which Makes Score Best in Aggregate City MPG?");
   } else{
     d3.select('svg')
       .append('g').append("text")
@@ -240,7 +240,7 @@ async function barChart(valueType) {
           .attr("text-anchor", "middle")  
           .style("font-size", "16px") 
           .style("text-decoration", "underline")  
-          .text("Which Makes score best in Aggregate Highway MPG?");
+          .text("Which Makes Score Best in Aggregate Highway MPG?");
   }
 
   d3.select("svg").append("g")
