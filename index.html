@@ -1,293 +1,370 @@
-<html>
-<script src='https://d3js.org/d3.v5.min.js'></script>
-<script src="https://rawgit.com/susielu/d3-annotation/master/d3-annotation.min.js"></script>
-<style> circle {fill: lightblue; stroke: black;} </style>
-<body onload='init()'>
-<svg width=600 height=450>
-</svg>
-<script>
+  <html>
+  <script src='https://d3js.org/d3.v5.min.js'></script>
+  <script src="https://rawgit.com/susielu/d3-annotation/master/d3-annotation.min.js"></script>
+  <style> circle {fill: lightblue; stroke: black;} </style>
+  <body onload='init()'>
+  <svg width=600 height=500>
+  </svg>
+  <script>
 
-var currentScene = 0;
-var filterModeFuel = "Any";
-var filterModeCyl = "Any";
+  var currentScene = 0;
+  var filterModeFuel = "Any";
+  var filterModeCyl = "Any";
 
-async function init() {
+  async function init() {
 
-  scatterPlot();
+    scatterPlot();
 
-  document.querySelector("body").addEventListener("click", evt => {
-    const button = evt.target.closest("button");
-    if (button) {
-      switchScene(button.dataset.value); // Evaluate the game's next transition with our input
+    document.querySelector("body").addEventListener("click", evt => {
+      const button = evt.target.closest("button");
+      if (button) {
+        switchScene(button.dataset.value);
+      }
+    });
+  }
+
+  function switchScene(value) {  
+    // Update global currentScene var
+    if(value == 3){
+      currentScene = (currentScene + 1) % 3;
+    } else {
+      currentScene = value;
     }
-  });
 
-}
-
-function switchScene(value) {  
-  // Update global currentScene var
-  if(value == 3){
-    currentScene = (currentScene + 1) % 3;
-  } else {
-    currentScene = value;
+    // Update view
+    d3.selectAll('svg').selectAll("*").remove();
+    if(currentScene == 0){
+        scatterPlot();
+    } else if(currentScene == 1){
+        barChart("highway");
+    } else {
+        barChart("city");
+    }
   }
 
-  // Update view
-  d3.selectAll('svg').selectAll("*").remove();
-  if(currentScene == 0){
-      scatterPlot();
-  } else if(currentScene == 1){
-      barChart("highway");
-  } else {
-      barChart("city");
-  }
-}
+  function filterDataFuel(data_raw, mode) {
+    if(mode === "Any"){
+      return data_raw;
+    }
 
-function filterDataFuel(data_raw, mode) {
-  if(mode === "Any"){
-    return data_raw;
+    return data_raw.filter(function(d) { 
+        if( d["Fuel"] === mode)
+        { 
+            return d;
+        } 
+    });
   }
 
-  return data_raw.filter(function(d) { 
-      if( d["Fuel"] === mode)
-      { 
-          return d;
-      } 
-  });
-}
+  function filterDataCyl(data_raw, n) {
+    if(n === "Any"){
+      return data_raw;
+    }
 
-function filterDataCyl(data_raw, n) {
-  if(n === "Any"){
-    return data_raw;
+    // Select only entries where EngineCylinders == n
+    return data_raw.filter(function(d) { 
+        if( d["EngineCylinders"] === n)
+        { 
+            return d;
+        } 
+    });
   }
 
-  // Select only entries where EngineCylinders == n
-  return data_raw.filter(function(d) { 
-      if( d["EngineCylinders"] === n)
-      { 
-          return d;
-      } 
-  });
-}
+  async function scatterPlot() {
+    const data_raw = await d3.csv(
+      "https://flunky.github.io/cars2017.csv");
 
-async function scatterPlot() {
-  const data_raw = await d3.csv(
-    "https://flunky.github.io/cars2017.csv");
+    data_tmp = filterDataFuel(data_raw, filterModeFuel);
+    data = filterDataCyl(data_tmp, filterModeCyl);
 
-  data_tmp = filterDataFuel(data_raw, filterModeFuel);
-  data = filterDataCyl(data_tmp, filterModeCyl);
+    ys = d3.scaleLog().domain([300,10]).range([0,300]);
+    xs = d3.scaleLog().domain([10,300]).range([0,300]);
 
-  ys = d3.scaleLog().domain([300,10]).range([0,300]);
-  xs = d3.scaleLog().domain([10,300]).range([0,300]);
-
-  d3.select('svg')
-    .append('g')
-    .append("text")
-        .attr("x", 230)             
-        .attr("y", 20)
+    d3.select('svg')
+      .append('g')
+      .append("text")
+          .attr("x", 270)             
+          .attr("y", 20)
+          .attr("text-anchor", "middle")  
+          .style("font-size", "20px") 
+          .style("text-decoration", "underline")  
+          .text("Which makes are the most fuel efficient?")
+    
+    d3.select('svg')
+      .append('g')
+      .append("text")
+        .attr("x", 270)             
+        .attr("y", 40)
         .attr("text-anchor", "middle")  
         .style("font-size", "16px") 
         .style("text-decoration", "underline")  
-        .text("Which makes are the most fuel efficient?")
-  
-  d3.select('svg')
-    .append('g')
-    .append("text")
-      .attr("x", 230)             
-      .attr("y", 42)
-      .attr("text-anchor", "middle")  
-      .style("font-size", "16px") 
-      .style("text-decoration", "underline")  
-      .text("First, Overview: AVG Highway MPG vs AVG City MPG");
+        .text("First, Overview: AVG Highway MPG vs AVG City MPG");
 
-  d3.select('svg')
-    .append('g')
-    .append("text")
-      .attr("x", 230)             
-      .attr("y", 58)
-      .attr("text-anchor", "middle")  
-      .style("font-size", "12px") 
-      .style("text-decoration", "underline")  
-      .text("(Radius scales with number of engine cylinders)");
+    d3.select('svg')
+      .append('g')
+      .append("text")
+        .attr("x", 270)             
+        .attr("y", 58)
+        .attr("text-anchor", "middle")  
+        .style("font-size", "14px") 
+        .style("text-decoration", "underline")  
+        .text("(Radius scales with number of engine cylinders)");
 
-  d3.select('svg')
-    .append('g')
-    .attr("transform", "translate(50, 70)")
-    .call(d3.axisLeft(ys)
-            .tickValues([10, 20, 50, 100, 150])
-            .tickFormat(d3.format("~s")));
+    d3.select('svg')
+      .append('g')
+      .append("text")
+        .attr("x", 280)             
+        .attr("y", 462)
+        .attr("text-anchor", "middle")  
+        .style("font-size", "16px") 
+        .text("Filter the scatter plot to learn which types of cars skew efficiency,");
 
-  d3.select('svg')
-    .append('g')
-    .attr("transform", "translate(50, 370)")
-    .call(d3.axisBottom(xs)
-            .tickValues([10, 20, 50, 100, 150])
-            .tickFormat(d3.format("~s")));
+    d3.select('svg')
+      .append('g')
+      .append("text")
+        .attr("x", 280)             
+        .attr("y", 488)
+        .attr("text-anchor", "middle")  
+        .style("font-size", "16px") 
+        .text("or to learn more about the car types you are in the market for!");
 
-  d3.select('svg')
-    .append('g')
-    .attr("transform", "translate(50, 70)")
-    .selectAll('p')
-    .data(data)
-    .enter()
-    .append('circle')
-      .attr('cx', function(d) {return xs(d.AverageCityMPG);})
-      .attr('cy', function(d) {return ys(d.AverageHighwayMPG);})
-      .attr('r', function(d) {return 2 + parseInt(d.EngineCylinders);})
-      .style('fill', 'lightblue');
+    d3.select('svg')
+      .append('g')
+      .attr("transform", "translate(50, 70)")
+      .call(d3.axisLeft(ys)
+              .tickValues([10, 20, 50, 100, 150])
+              .tickFormat(d3.format("~s")));
 
-      if((filterModeFuel === "Electricity") || (filterModeFuel === "Any")){
-        // Features of the annotation
-        const annotations = [
-          {
-            type:d3.annotationCalloutCircle,
-            note: {
-              title: "Electric Cars",
-              label: "High MPG both City and Highway"
-            },
-            x: 270,
-            y: 170,
-            dy: 65,
-            dx: 15,
-            subject: {
-              radius: 40,
-              radiusPadding: 0
+    d3.select('svg')
+      .append('g')
+      .attr("transform", "translate(50, 370)")
+      .call(d3.axisBottom(xs)
+              .tickValues([10, 20, 50, 100, 150])
+              .tickFormat(d3.format("~s")));
+
+    d3.select('svg')
+    .append('g').append("text")
+      .attr("class", "x label")
+      .attr("text-anchor", "end")
+      .attr("x", 200)
+      .attr("y", 402)
+      .style("font-size", "10px") 
+      .text("MPG, City");
+
+    d3.select('svg')
+    .append('g').append("text")
+      .attr("class", "x label")
+      .attr("text-anchor", "end")
+      .attr("x", 280)
+      .attr("y", -14)
+      .style("font-size", "10px") 
+      .text("MPG, Highway")
+      .attr("transform", "rotate(90)" );
+
+
+    d3.select('svg')
+      .append('g')
+      .attr("transform", "translate(50, 70)")
+      .selectAll('p')
+      .data(data)
+      .enter()
+      .append('circle')
+        .attr('cx', function(d) {return xs(d.AverageCityMPG);})
+        .attr('cy', function(d) {return ys(d.AverageHighwayMPG);})
+        .attr('r', function(d) {return 2 + parseInt(d.EngineCylinders);})
+        .style('fill', 'lightblue');
+
+        if((filterModeFuel === "Electricity") || (filterModeFuel === "Any")){
+          // Features of the annotation
+          const annotations = [
+            {
+              type:d3.annotationCalloutCircle,
+              note: {
+                title: "Electric Cars",
+                label: "High MPG both City and Highway"
+              },
+              x: 270,
+              y: 170,
+              dy: 65,
+              dx: 15,
+              subject: {
+                radius: 40,
+                radiusPadding: 0
+              }
             }
-          }
-        ]
-      
-        // Add annotation to the chart
-        const makeAnnotations = d3.annotation()
-          .annotations(annotations)
-        d3.select("svg")
-          .append("g")
-          .call(makeAnnotations)
-    }
+          ]
+        
+          // Add annotation to the chart
+          const makeAnnotations = d3.annotation()
+            .annotations(annotations)
+          d3.select("svg")
+            .append("g")
+            .call(makeAnnotations)
+      }
 
-    if((filterModeFuel != "Electricity")){
-        // Features of the annotation
-        const annotations = [
-          {
-            type:d3.annotationCalloutCircle,
-            note: {
-              title: "Non-Electric Cars",
-              label: "Lower aggregate efficiency scores"
-            },
-            x: 105,
-            y: 290,
-            dy: -90,
-            dx: -0,
-            subject: {
-              radius: 80,
-              radiusPadding: 0
+      if((filterModeFuel != "Electricity")){
+          // Features of the annotation
+          const annotations = [
+            {
+              type:d3.annotationCalloutCircle,
+              note: {
+                title: "Non-Electric Cars",
+                label: "Lower aggregate efficiency scores"
+              },
+              x: 105,
+              y: 290,
+              dy: -90,
+              dx: -0,
+              subject: {
+                radius: 80,
+                radiusPadding: 0
+              }
             }
-          }
-        ]
-      
-        // Add annotation to the chart
-        const makeAnnotations = d3.annotation()
-          .annotations(annotations)
-        d3.select("svg")
-          .append("g")
-          .call(makeAnnotations)
-    }
-}
-
-// Bar chart adapted from https://www.tutorialsteacher.com/d3js/create-bar-chart-using-d3js
-async function barChart(valueType) {
-  const data_raw = await d3.csv(
-    "https://flunky.github.io/cars2017.csv");
-
-  data_filt1 = filterDataFuel(data_raw, filterModeFuel);
-  data_filt2 = filterDataCyl(data_filt1, filterModeCyl);
-
-  if(valueType === "city"){
-    var data_agg = d3.nest()
-      .key(function(d) { return d.Make; })
-      .rollup(function(v) { return d3.mean(v, function(d) { return d.AverageCityMPG; }); })
-      .entries(data_filt2);
-  } else {
-    var data_agg = d3.nest()
-      .key(function(d) { return d.Make; })
-      .rollup(function(v) { return d3.mean(v, function(d) { return d.AverageHighwayMPG; }); })
-      .entries(data_filt2);
+          ]
+        
+          // Add annotation to the chart
+          const makeAnnotations = d3.annotation()
+            .annotations(annotations)
+          d3.select("svg")
+            .append("g")
+            .call(makeAnnotations)
+      }
   }
 
-  data = data_agg.sort(function (a,b) {return d3.descending(a.value, b.value); });
+  // Bar chart adapted from https://www.tutorialsteacher.com/d3js/create-bar-chart-using-d3js
+  async function barChart(valueType) {
+    const data_raw = await d3.csv(
+      "https://flunky.github.io/cars2017.csv");
 
-  var margin = {top: 80, right: 20, bottom: 70, left: 80},
-  width = 600 - margin.left - margin.right,
-  height = 350 - margin.top - margin.bottom;
-  xAxis_y = margin.top + height;
+    data_filt1 = filterDataFuel(data_raw, filterModeFuel);
+    data_filt2 = filterDataCyl(data_filt1, filterModeCyl);
 
-  var x = d3.scaleBand().rangeRound([0, width]).paddingInner(0.05);
+    if(valueType === "city"){
+      var data_agg = d3.nest()
+        .key(function(d) { return d.Make; })
+        .rollup(function(v) { return d3.mean(v, function(d) { return d.AverageCityMPG; }); })
+        .entries(data_filt2);
+    } else {
+      var data_agg = d3.nest()
+        .key(function(d) { return d.Make; })
+        .rollup(function(v) { return d3.mean(v, function(d) { return d.AverageHighwayMPG; }); })
+        .entries(data_filt2);
+    }
 
-  var y = d3.scaleLinear().range([height, 0]);
+    data = data_agg.sort(function (a,b) {return d3.descending(a.value, b.value); });
 
-  var xAxis = d3.axisBottom(x)
-      .tickValues(data.Make);
+    var margin = {top: 80, right: 20, bottom: 70, left: 40},
+    width = 600 - margin.left - margin.right,
+    height = 350 - margin.top - margin.bottom;
+    xAxis_y = margin.top + height;
 
-  var yAxis = d3.axisLeft(y)
-      .ticks(10);
+    var x = d3.scaleBand().rangeRound([0, width]).paddingInner(0.05);
 
-  x.domain(data.map(function(d) { return d.key; }));
-  y.domain([0, 150]);
+    var y = d3.scaleLinear().range([height, 0]);
 
-  if(valueType === "city"){
-    d3.select('svg')
-      .append('g').append("text")
-          .attr("x", 370)             
-          .attr("y", 20)
-          .attr("text-anchor", "middle")  
-          .style("font-size", "16px") 
-          .style("text-decoration", "underline")  
-          .text("Which Makes Score Best in Aggregate City MPG?");
-  } else{
-    d3.select('svg')
-      .append('g').append("text")
-          .attr("x", 370)             
-          .attr("y", 20)
-          .attr("text-anchor", "middle")  
-          .style("font-size", "16px") 
-          .style("text-decoration", "underline")  
-          .text("Which Makes Score Best in Aggregate Highway MPG?");
-  }
+    var xAxis = d3.axisBottom(x)
+        .tickValues(data.Make);
 
-  d3.select("svg").append("g")
-    .attr("transform",
-      "translate(" + margin.left + "," + xAxis_y + ")")
-    .attr("class", "x axis")
-    .call(xAxis)
-  .selectAll("text")
-    .style("text-anchor", "end")
-    .attr("dx", "-.8em")
-    .attr("dy", "-.55em")
-    .attr("transform", "rotate(-90)" );
+    var yAxis = d3.axisLeft(y)
+        .ticks(10);
 
-  d3.select("svg").append("g")
-  .attr("transform",
-        "translate(" + margin.left + "," + margin.top + ")")
-  .attr("class", "y axis")
-  .call(yAxis)
-.append("text")
-  .attr("transform", "rotate(-90)")
-  .attr("y", 6)
-  .attr("dy", ".71em")
-  .style("text-anchor", "end")
-  .text("Value ($)");
+    x.domain(data.map(function(d) { return d.key; }));
+    y.domain([0, 150]);
 
-  d3.select("svg")
-    .append("g")
+    if(valueType === "city"){
+      d3.select('svg')
+        .append('g').append("text")
+            .attr("x", 270)             
+            .attr("y", 20)
+            .attr("text-anchor", "middle")  
+            .style("font-size", "20px") 
+            .style("text-decoration", "underline")  
+            .text("Which makes are most efficient in the city?");
+
+      d3.select('svg')
+        .append('g').append("text")
+          .attr("class", "x label")
+          .attr("text-anchor", "end")
+          .attr("x", 280)
+          .attr("y", -8)
+          .style("font-size", "10px") 
+          .text("MPG, City")
+          .attr("transform", "rotate(90)" );
+    } else{
+      d3.select('svg')
+        .append('g').append("text")
+            .attr("x", 270)             
+            .attr("y", 20)
+            .attr("text-anchor", "middle")  
+            .style("font-size", "20px") 
+            .style("text-decoration", "underline")  
+            .text("Which makes are most efficient on the highway?");
+
+      d3.select('svg')
+        .append('g').append("text")
+          .attr("class", "x label")
+          .attr("text-anchor", "end")
+          .attr("x", 280)
+          .attr("y", -8)
+          .style("font-size", "10px") 
+          .text("MPG, Highway")
+          .attr("transform", "rotate(90)" );
+    }
+
+    d3.select("svg").append("g")
+      .attr("transform",
+        "translate(" + margin.left + "," + xAxis_y + ")")
+      .attr("class", "x axis")
+      .call(xAxis)
+    .selectAll("text")
+      .style("text-anchor", "end")
+      .attr("dx", "-.8em")
+      .attr("dy", "-.55em")
+      .attr("transform", "rotate(-90)" );
+
+    d3.select("svg").append("g")
     .attr("transform",
           "translate(" + margin.left + "," + margin.top + ")")
-    .selectAll("bar")
-    .data(data)
-  .enter().append("rect")
-    .style("fill", "steelblue")
-    .attr("x", function(d) { return x(d.key); })
-    .attr("width", x.bandwidth())
-    .attr("y", function(d) { return y(d.value); })
-    .attr("height", function(d) { return height - y(d.value); });
+    .attr("class", "y axis")
+    .call(yAxis)
+  .append("text")
+    .attr("transform", "rotate(-90)")
+    .attr("y", 6)
+    .attr("dy", ".71em")
+    .style("text-anchor", "end")
+    .text("Value ($)");
+
+    d3.select("svg")
+      .append("g")
+      .attr("transform",
+            "translate(" + margin.left + "," + margin.top + ")")
+      .selectAll("bar")
+      .data(data)
+    .enter().append("rect")
+      .style("fill", "steelblue")
+      .attr("x", function(d) { return x(d.key); })
+      .attr("width", x.bandwidth())
+      .attr("y", function(d) { return y(d.value); })
+      .attr("height", function(d) { return height - y(d.value); });
+
+    d3.select('svg')
+      .append('g')
+      .append("text")
+        .attr("x", 280)             
+        .attr("y", 462)
+        .attr("text-anchor", "middle")  
+        .style("font-size", "16px") 
+        .text("Now, filter the bar chart to drill down into the segment you are");
+
+    d3.select('svg')
+      .append('g')
+      .append("text")
+        .attr("x", 280)             
+        .attr("y", 488)
+        .attr("text-anchor", "middle")  
+        .style("font-size", "16px") 
+        .text("interested in, and find the most efficient make in that segment!");
+
+
 
     if((filterModeFuel == "Any") && filterModeCyl == "Any"){
         // Features of the annotation
@@ -295,9 +372,9 @@ async function barChart(valueType) {
           {
             note: {
               title: "Tesla",
-              label: "Best aggregate performance - fully electric lineup"
+              label: "Best score - fully electric lineup"
             },
-            x: 90,
+            x: 50,
             y: 140,
             dy: -5,
             dx: 10,
@@ -305,9 +382,9 @@ async function barChart(valueType) {
           {
             note: {
               title: "Racing Makes",
-              label: "Worst performance - inefficient"
+              label: "Worst score - inefficient"
             },
-            x: 555,
+            x: 515,
             y: 250,
             dy: -5,
             dx: -10,
@@ -317,12 +394,12 @@ async function barChart(valueType) {
             note: {
               label: "Top 7 consistent, highway vs city"
             },
-            x: 85,
+            x: 45,
             y: 278,
             dy: 87,
             dx: 60,
             subject: {
-              width: 91,
+              width: 95,
               height: 70
             }
           }
@@ -334,156 +411,156 @@ async function barChart(valueType) {
         d3.select("svg")
           .append("g")
           .call(makeAnnotations)
-    }
+      }
 
-    if((filterModeFuel == "Gasoline") && filterModeCyl == "Any"){
-        // Features of the annotation
-        const annotations = [
-          {
-            note: {
-              title: "Smaller cars",
-              label: "Best performance - more efficient"
+      if((filterModeFuel == "Gasoline") && filterModeCyl == "Any"){
+          // Features of the annotation
+          const annotations = [
+            {
+              note: {
+                title: "Smaller cars",
+                label: "Best performance - more efficient"
+              },
+              x: 60,
+              y: 220,
+              dy: -5,
+              dx: 10,
             },
-            x: 100,
-            y: 220,
-            dy: -5,
-            dx: 10,
-          },
-          {
-            note: {
-              title: "Racing Makes",
-              label: "Worst performance - inefficient"
+            {
+              note: {
+                title: "Racing Makes",
+                label: "Worst performance - inefficient"
+              },
+              x: 515,
+              y: 250,
+              dy: -5,
+              dx: -10,
+            }
+          ]
+        
+          // Add annotation to the chart
+          const makeAnnotations = d3.annotation()
+            .annotations(annotations)
+          d3.select("svg")
+            .append("g")
+            .call(makeAnnotations)
+      }
+
+      if((filterModeFuel == "Electricity") && filterModeCyl == "Any"){
+          // Features of the annotation
+          const annotations = [
+            {
+              note: {
+                title: "Hyundai",
+                label: "Leads when selecting only electric cars"
+              },
+              x: 65,
+              y: 335,
+              dy: 15,
+              dx: 50,
             },
-            x: 555,
-            y: 250,
-            dy: -5,
-            dx: -10,
-          }
-        ]
-      
-        // Add annotation to the chart
-        const makeAnnotations = d3.annotation()
-          .annotations(annotations)
-        d3.select("svg")
-          .append("g")
-          .call(makeAnnotations)
-    }
+          ]
+        
+          // Add annotation to the chart
+          const makeAnnotations = d3.annotation()
+            .annotations(annotations)
+          d3.select("svg")
+            .append("g")
+            .call(makeAnnotations)
+      }
 
-    if((filterModeFuel == "Electricity") && filterModeCyl == "Any"){
-        // Features of the annotation
-        const annotations = [
-          {
-            note: {
-              title: "Hyundai",
-              label: "Leads when selecting only electric cars"
+      if((filterModeFuel == "Gasoline") && filterModeCyl == "Any"){
+          // Features of the annotation
+          const annotations = [
+            {
+              note: {
+                title: "smart",
+                label: "Leads when selecting only gasoline cars"
+              },
+              x: 60,
+              y: 320,
+              dy: 45,
+              dx: 20,
             },
-            x: 105,
-            y: 335,
-            dy: 15,
-            dx: 50,
-          },
-        ]
-      
-        // Add annotation to the chart
-        const makeAnnotations = d3.annotation()
-          .annotations(annotations)
-        d3.select("svg")
-          .append("g")
-          .call(makeAnnotations)
-    }
+          ]
+        
+          // Add annotation to the chart
+          const makeAnnotations = d3.annotation()
+            .annotations(annotations)
+          d3.select("svg")
+            .append("g")
+            .call(makeAnnotations)
+      }
 
-    if((filterModeFuel == "Gasoline") && filterModeCyl == "Any"){
-        // Features of the annotation
-        const annotations = [
-          {
-            note: {
-              title: "smart",
-              label: "Leads when selecting only gasoline cars"
+      if((filterModeFuel == "Diesel") && filterModeCyl == "Any"){
+          // Features of the annotation
+          const annotations = [
+            {
+              note: {
+                title: "Jaguar",
+                label: "Leads when selecting only diesel cars"
+              },
+              x: 88,
+              y: 328,
+              dy: 15,
+              dx: 20,
             },
-            x: 100,
-            y: 320,
-            dy: 45,
-            dx: 20,
-          },
-        ]
-      
-        // Add annotation to the chart
-        const makeAnnotations = d3.annotation()
-          .annotations(annotations)
-        d3.select("svg")
-          .append("g")
-          .call(makeAnnotations)
-    }
+          ]
+        
+          // Add annotation to the chart
+          const makeAnnotations = d3.annotation()
+            .annotations(annotations)
+          d3.select("svg")
+            .append("g")
+            .call(makeAnnotations)
+      }
+  }
 
-    if((filterModeFuel == "Diesel") && filterModeCyl == "Any"){
-        // Features of the annotation
-        const annotations = [
-          {
-            note: {
-              title: "Jaguar",
-              label: "Leads when selecting only diesel cars"
-            },
-            x: 128,
-            y: 328,
-            dy: 15,
-            dx: 20,
-          },
-        ]
-      
-        // Add annotation to the chart
-        const makeAnnotations = d3.annotation()
-          .annotations(annotations)
-        d3.select("svg")
-          .append("g")
-          .call(makeAnnotations)
-    }
-}
+  function processDropDownFuel() {  
+      var fuelList = document.getElementById("fuelList");  
+      filterModeFuel = fuelList.options[fuelList.selectedIndex].text;
+      switchScene(currentScene);
+  }
 
-function processDropDownFuel() {  
-    var fuelList = document.getElementById("fuelList");  
-    filterModeFuel = fuelList.options[fuelList.selectedIndex].text;
-    switchScene(currentScene);
-}
-
-function processDropDownCyl() {  
-    var cylList = document.getElementById("cylList");  
-    filterModeCyl = cylList.options[cylList.selectedIndex].text;
-    switchScene(currentScene);
-}
+  function processDropDownCyl() {  
+      var cylList = document.getElementById("cylList");  
+      filterModeCyl = cylList.options[cylList.selectedIndex].text;
+      switchScene(currentScene);
+  }
 
 
-</script>
+  </script>
 
-<form>  
-    <b> Filter by Fuel Type </b>  
-    <select id = "fuelList" onchange = "processDropDownFuel()" >  
-    <option> ----Fuel---- </option>  
-    <option> Any </option>  
-    <option> Gasoline </option>  
-    <option> Diesel </option>  
-    <option> Electricity </option>  
-    </select>  
-  </form>  
-<form>  
-    <b> Filter by Engine Cylinders </b>  
-    <select id = "cylList" onchange = "processDropDownCyl()" >  
-    <option> ---Cylinders--- </option>  
-    <option> Any </option>  
-    <option> 0 </option>  
-    <option> 3 </option>  
-    <option> 4 </option>  
-    <option> 6 </option>  
-    <option> 8 </option>  
-    <option> 10 </option>  
-    <option> 12 </option>  
-    </select>  
-  </form>
-  <b> <br> Scene </b>  
-  <button data-value="0">0</button>
-  <button data-value="1">1</button>
-  <button data-value="2">2</button>
-  <button data-value="3">Next</button>
-  <output></output> 
-</body>
-</html>
+  <form>  
+      <b> Filter by Fuel Type </b>  
+      <select id = "fuelList" onchange = "processDropDownFuel()" >  
+      <option> ----Fuel---- </option>  
+      <option> Any </option>  
+      <option> Gasoline </option>  
+      <option> Diesel </option>  
+      <option> Electricity </option>  
+      </select>  
+    </form>  
+  <form>  
+      <b> Filter by Engine Cylinders </b>  
+      <select id = "cylList" onchange = "processDropDownCyl()" >  
+      <option> ---Cylinders--- </option>  
+      <option> Any </option>  
+      <option> 0 </option>  
+      <option> 3 </option>  
+      <option> 4 </option>  
+      <option> 6 </option>  
+      <option> 8 </option>  
+      <option> 10 </option>  
+      <option> 12 </option>  
+      </select>  
+    </form>
+    <b> <br> Scene </b>  
+    <button data-value="0">1</button>
+    <button data-value="1">2</button>
+    <button data-value="2">3</button>
+    <button data-value="3">Next</button>
+    <output></output> 
+  </body>
+  </html>
 
