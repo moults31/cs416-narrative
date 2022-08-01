@@ -171,11 +171,11 @@
     .append('g').append("text")
       .attr("class", "x label")
       .attr("text-anchor", "end")
-      .attr("x", 280)
-      .attr("y", -14)
+      .attr("x", -220)
+      .attr("y", 14)
       .style("font-size", "10px") 
       .text("MPG, Highway")
-      .attr("transform", "rotate(90)" );
+      .attr("transform", "rotate(-90)" );
 
 
     d3.select('svg')
@@ -301,11 +301,11 @@
         .append('g').append("text")
           .attr("class", "x label")
           .attr("text-anchor", "end")
-          .attr("x", 280)
-          .attr("y", -8)
+          .attr("x", -180)
+          .attr("y", 8)
           .style("font-size", "10px") 
           .text("MPG, City")
-          .attr("transform", "rotate(90)" );
+          .attr("transform", "rotate(-90)" );
     } else{
       d3.select('svg')
         .append('g').append("text")
@@ -320,11 +320,11 @@
         .append('g').append("text")
           .attr("class", "x label")
           .attr("text-anchor", "end")
-          .attr("x", 280)
-          .attr("y", -8)
+          .attr("x", -180)
+          .attr("y", 8)
           .style("font-size", "10px") 
           .text("MPG, Highway")
-          .attr("transform", "rotate(90)" );
+          .attr("transform", "rotate(-90)" );
     }
 
     d3.select("svg").append("g")
